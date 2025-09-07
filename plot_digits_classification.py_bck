@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets, metrics, svm
-from sklearn.model_selection import train_test_split , GridSearchCV
+from sklearn.model_selection import train_test_split
 
 ###############################################################################
 # Digits dataset
@@ -59,76 +59,19 @@ for ax, image, label in zip(axes, digits.images, digits.target):
 n_samples = len(digits.images)
 data = digits.images.reshape((n_samples, -1))
 
-######## Old Code Starts ###############
 # Create a classifier: a support vector classifier
-#clf = svm.SVC(gamma=0.001)
-# Old Code Ends ######################
-
+clf = svm.SVC(gamma=0.001)
 
 # Split data into 50% train and 50% test subsets
 X_train, X_test, y_train, y_test = train_test_split(
     data, digits.target, test_size=0.5, shuffle=False
 )
 
-# New Hyper Parameter Code Added #########################
-# Hyperparameter Optimization
-# ___________________________
-#
-# Instead of fixing hyperparameters , we perform a grid search to find 
-# the optimal parameters for SVM classifier.
-
-# Define the parameter grid to search
-param_grid = {
-        'C': [0.1, 1, 10, 100],
-        'gamma': [ 0.001, 0.01, 0.1]
-}
-
-# Create a classifier: a support vector classifier
-svc = svm.SVC()
-
-# Perform grid search with cross-validation
-print("")
-grid_search = GridSearchCV(
-        estimator=svc,
-        param_grid=param_grid,
-        cv=5,
-        scoring='accuracy',
-        n_jobs=1,
-        verbose=1
-)
-
-grid_search.fit(X_train, y_train)
-
-
-print(f"Best parameters found: {grid_search.best_params_}")
-print(f"Best cross-validation score: {grid_search.best_score_:.4f}")
-
-# Use the best estimator
-clf = grid_search.best_estimator_
-
-###############################################################################
-# Compare with default parameters
-# -------------------------------
-
-# Train a classifier with default parameters for comparison
-clf_default = svm.SVC(gamma=0.001)
-clf_default.fit(X_train, y_train)
-predicted_default = clf_default.predict(X_test)
-
 # Learn the digits on the train subset
 clf.fit(X_train, y_train)
 
 # Predict the value of the digit on the test subset
 predicted = clf.predict(X_test)
-
-# Compare accuracy
-default_accuracy = metrics.accuracy_score(y_test, predicted_default)
-optimized_accuracy = metrics.accuracy_score(y_test, predicted)
-
-print(f"\nDefault parameters accuracy: {default_accuracy:.4f}")
-print(f"Optimized parameters accuracy: {optimized_accuracy:.4f}")
-print(f"Improvement: {optimized_accuracy - default_accuracy:.4f}")
-
 
 ###############################################################################
 # Below we visualize the first 4 test samples and show their predicted
@@ -183,21 +126,3 @@ print(
     "Classification report rebuilt from confusion matrix:\n"
     f"{metrics.classification_report(y_true, y_pred)}\n"
 )
-
-###############################################################################
-# Display the best hyperparameters and their performance
-print("="*60)
-print("HYPERPARAMETER OPTIMIZATION RESULTS")
-print("="*60)
-print(f"Best parameters: {grid_search.best_params_}")
-print(f"Best cross-validation score: {grid_search.best_score_:.4f}")
-print(f"Test set accuracy: {optimized_accuracy:.4f}")
-
-# Show the complete grid search results
-print("\nComplete grid search results:")
-results = grid_search.cv_results_
-for i in range(len(results['params'])):
-    print(f"Parameters: {results['params'][i]}")
-    print(f"Mean test score: {results['mean_test_score'][i]:.4f}")
-    print(f"Rank: {results['rank_test_score'][i]}")
-    print("-" * 40)
